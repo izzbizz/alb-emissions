@@ -32,4 +32,4 @@ plot_features(model.clf, prep.df, '../plots/')
 
 this will save these two plots in the `plots` directory:
 
-![](../plots/top_features.png) ![](../plots/top_features_aggregated.png)
+![](../plots/top_features.png | width=100) ![](../plots/top_features_aggregated.png | width=100)
