@@ -2,6 +2,9 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 class Preparer():
+    '''prepare the dataset for training
+       modify and remove columns, delete rows with nans or nonsensical values
+       returns training set, test set, evaluation set'''
     def __init__(self, datapath, filename):
         self.df = pd.read_csv(datapath + filename, parse_dates=['TEST_SDATE', 'TEST_EDATE'], lineterminator='\n', low_memory=False)
         
@@ -9,20 +12,26 @@ class Preparer():
         self.df['DAY'] = self.df.TEST_SDATE.apply(lambda x: x.date())
 
     def _create_age_column(self):
+        '''add one year to model year to avoid age 0'''
         self.df['AGE'] = pd.to_datetime(self.df["TEST_EDATE"]).dt.year - self.df["MODEL_YEAR"]
         self.df['AGE'] += 1
 
     def _create_target_variable(self):
+        '''target variable is the cars future test result
+           remove rows without future text result'''
         self.df['TARGET'] = self.df.groupby('VIN').OVERALL_RESULT.shift(-1)
         self.df = self.df[self.df.TARGET.notna()]
 
     def _remove_daily_duplicates(self):
+        '''remove duplicate tests on the same day'''
         self.df.drop_duplicates(['VIN', 'DAY'], keep='first', inplace=True)
 
     def _reduce_results(self):
+        '''remove irrelevant test results'''
         self.df = self.df[self.df.TARGET.isin(['P', 'F'])]
 
     def _remove_rows(self):
+        '''remove nonsensical odometer and nan vehicle type'''
         self.df = self.df[(~self.df.ODOMETER.isin([8888888, 888888, 88888, 100000, 0, 1, 10000])) \
                     & (~self.df.GVW_TYPE.isna())]
 
